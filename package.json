@@ -1,6 +1,6 @@
 {
   "name": "enmoq",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Comprehensive mock testing infrastructure for Node.js projects with services, repositories, queues, and external APIs",
   "main": "src/index.js",
   "type": "commonjs",
@@ -21,7 +21,7 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/d30s/enmoq"
+    "url": "https://github.com/spec-nosce/enmoq"
   },
   "engines": {
     "node": ">=14.0.0"
