@@ -1,6 +1,6 @@
 {
   "name": "enmoq",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Comprehensive mock testing infrastructure for Node.js projects with services, repositories, queues, and external APIs",
   "main": "src/index.js",
   "type": "commonjs",
