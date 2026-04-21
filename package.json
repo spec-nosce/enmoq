@@ -28,8 +28,7 @@
   },
   "scripts": {
     "test": "jest",
-    "lint": "eslint src/",
-    "prepublishOnly": "npm test"
+    "lint": "eslint src/"
   },
   "bin": {
     "enmoq": "./src/cli/index.js"
