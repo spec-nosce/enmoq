@@ -1,0 +1,12 @@
+{
+  "name": "@app-core/mock-http-request",
+  "version": "1.0.0",
+  "description": "Behavior-driven HTTP request mocking system for deterministic testing",
+  "main": "index.js",
+  "author": "Nuvion",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@app-core/randomness": "file:../randomness",
+    "@app-core/logger": "file:../logger"
+  }
+}

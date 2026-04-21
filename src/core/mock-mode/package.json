@@ -1,0 +1,7 @@
+{
+  "name": "@app-core/mock-mode",
+  "version": "1.0.0",
+  "description": "Mock mode switcher for testing",
+  "main": "index.js",
+  "private": true
+}

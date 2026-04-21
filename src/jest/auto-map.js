@@ -1,0 +1,67 @@
+/**
+ * Auto-detect and map mockable core modules
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * Automatically map all mockable core modules
+ *
+ * @param {Object} options - Configuration options
+ * @param {string} options.coreDir - Path to core directory (Jest format: '<rootDir>/core')
+ * @param {string[]} options.exclude - Modules to exclude from mocking
+ * @returns {Object} Jest moduleNameMapper configuration
+ *
+ * @example
+ * const mappings = autoMapCoreModules({
+ *   coreDir: '<rootDir>/core',
+ *   exclude: ['logger', 'errors', 'validator']
+ * });
+ */
+function autoMapCoreModules(options = {}) {
+  const { coreDir, exclude = [] } = options;
+
+  // Define mockable modules (modules that have mock implementations)
+  const mockableModules = [
+    'repository-factory',
+    'queue',
+    'http-request',
+    'clickhouse',
+    'tigerbeetle',
+  ].filter((mod) => !exclude.includes(mod));
+
+  const mappings = {};
+
+  // Create mappings for each mockable module
+  mockableModules.forEach((moduleName) => {
+    const mockName = moduleNameToMockName(moduleName);
+
+    mappings[`^@app-core/${moduleName}$`] = `<rootDir>/node_modules/enmoq/src/core/${mockName}`;
+  });
+
+  return mappings;
+}
+
+/**
+ * Convert module name to mock directory name
+ *
+ * @param {string} moduleName - Module name (e.g., 'repository-factory')
+ * @returns {string} Mock directory name (e.g., 'mock-repository')
+ */
+function moduleNameToMockName(moduleName) {
+  const mapping = {
+    'repository-factory': 'mock-repository',
+    queue: 'mock-queue',
+    'http-request': 'mock-http',
+    clickhouse: 'mock-clickhouse',
+    tigerbeetle: 'mock-tigerbeetle',
+  };
+
+  return mapping[moduleName] || `mock-${moduleName}`;
+}
+
+module.exports = {
+  autoMapCoreModules,
+  moduleNameToMockName,
+};

@@ -1,0 +1,19 @@
+{
+  "name": "clickhouse-mock",
+  "version": "1.0.0",
+  "description": "ClickHouse mock for testing without database dependency",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-all.js",
+    "test:insert": "node test-insert.js",
+    "test:query": "node test-query.js",
+    "test:persistence": "node test-persistence.js"
+  },
+  "keywords": [
+    "clickhouse",
+    "mock",
+    "testing"
+  ],
+  "author": "Nuvion Core",
+  "license": "UNLICENSED"
+}

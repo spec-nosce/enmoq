@@ -1,0 +1,20 @@
+{
+  "name": "bull-mock",
+  "version": "1.0.0",
+  "description": "Bull mock implementation for testing job queue scenarios",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test:all",
+    "test:basic": "node test-basic.js",
+    "test:processing": "node test-processing.js",
+    "test:all": "npm run test:basic && npm run test:processing"
+  },
+  "keywords": [
+    "bull",
+    "mock",
+    "queue",
+    "testing"
+  ],
+  "author": "",
+  "license": "ISC"
+}
