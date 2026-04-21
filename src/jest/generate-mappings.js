@@ -46,6 +46,7 @@ function moduleNameToMockName(moduleName) {
     'http-request': 'mock-http',
     clickhouse: 'mock-clickhouse',
     tigerbeetle: 'mock-tigerbeetle',
+    mongoose: 'mock-mongoose',
   };
 
   return mapping[moduleName] || `mock-${moduleName}`;

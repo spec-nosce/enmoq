@@ -29,6 +29,7 @@ function autoMapCoreModules(options = {}) {
     'http-request',
     'clickhouse',
     'tigerbeetle',
+    'mongoose',
   ].filter((mod) => !exclude.includes(mod));
 
   const mappings = {};
@@ -39,6 +40,12 @@ function autoMapCoreModules(options = {}) {
 
     mappings[`^@app-core/${moduleName}$`] = `<rootDir>/node_modules/enmoq/src/core/${mockName}`;
   });
+
+  // Alias mappings — same mock, different package path
+  // @nuvion-core/app-core/http-request is the standalone extraction of @app-core/http-request
+  if (!exclude.includes('http-request')) {
+    mappings[`^@nuvion-core/app-core/http-request$`] = `<rootDir>/node_modules/enmoq/src/core/mock-http`;
+  }
 
   return mappings;
 }
@@ -56,6 +63,7 @@ function moduleNameToMockName(moduleName) {
     'http-request': 'mock-http',
     clickhouse: 'mock-clickhouse',
     tigerbeetle: 'mock-tigerbeetle',
+    mongoose: 'mock-mongoose',
   };
 
   return mapping[moduleName] || `mock-${moduleName}`;

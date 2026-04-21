@@ -531,7 +531,62 @@ function clearAllQueues() {
   return Promise.all(promises);
 }
 
+/**
+ * createWorker - mirrors the @app-core/queue createWorker API
+ *
+ * Wraps createQueue + queue.process() and returns { scheduleJob(data, opts) },
+ * matching the contract used by every worker in the codebase:
+ *
+ *   const worker = createWorker({ processor, processor_name, queue_options, scheduler_options });
+ *   worker.scheduleJob(data, opts);   // called from services
+ *
+ * In tests, processMode defaults to 'manual' so jobs are queued but not
+ * executed automatically — use processQueueJobs() / queue.processJobs() to
+ * drain the queue when needed.
+ */
+function createWorker(workerConfig) {
+  const {
+    processor,
+    processor_name: processorName = 'default',
+    queue_options: queueOptions = {},
+    scheduler_options: schedulerOpts = {},
+  } = workerConfig;
+
+  const queue = createQueue(queueOptions);
+
+  // Guard: if createQueue returned nothing (no queueName configured), return a
+  // no-op worker so services don't crash when the queue isn't configured.
+  if (!queue) {
+    return { scheduleJob: () => Promise.resolve(null) };
+  }
+
+  if (typeof processor !== 'function') {
+    throw new Error('createWorker: processor must be a function');
+  }
+
+  // Register the processor so queue.processJobs() can execute it.
+  queue.process(processorName, async (job) => {
+    return processor(job);
+  });
+
+  /**
+   * Schedule a job — equivalent to queue.add(processorName, data, opts).
+   * @param {object} jobData
+   * @param {object} [opts] - Bull JobOptions (attempts, delay, priority, …)
+   * @returns {Promise<Job>}
+   */
+  function scheduleJob(jobData, opts = {}) {
+    return queue.add(processorName, jobData, {
+      ...(schedulerOpts || {}),
+      ...opts,
+    });
+  }
+
+  return { scheduleJob, queue };
+}
+
 module.exports = BullMock;
 module.exports.BullMock = BullMock;
 module.exports.createQueue = createQueue;
+module.exports.createWorker = createWorker;
 module.exports.clearAllQueues = clearAllQueues;

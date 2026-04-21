@@ -384,6 +384,50 @@ function createClient(options = {}) {
   return sharedInstance;
 }
 
+// ---------------------------------------------------------------------------
+// Named table constants — mirror the real @app-core/clickhouse exports so
+// destructuring imports like:
+//   const { ACCOUNT_BALANCE_TABLE_NAME, insert } = require('@app-core/clickhouse');
+// resolve correctly in tests.
+// ---------------------------------------------------------------------------
+const ACCOUNT_BALANCE_TABLE_NAME = 'account_balances';
+
+// ---------------------------------------------------------------------------
+// Top-level helper functions — delegate to the shared singleton so callers
+// can use them as free functions (the pattern used throughout the codebase):
+//   const { findMany, insert } = require('@app-core/clickhouse');
+// ---------------------------------------------------------------------------
+
+/**
+ * Insert rows into a ClickHouse table.
+ * @param {{ table: string, values: object[], format?: string }} params
+ */
+function insert(params) {
+  return createClient().insert(params);
+}
+
+/**
+ * Execute a SELECT query and return matching rows.
+ * @param {{ query: string, queryParams?: object }} params
+ * @returns {Promise<{ data: object[] }>}
+ */
+function findMany(params) {
+  return createClient().findMany(params);
+}
+
+/**
+ * connectToClickhouse — no-op in tests; the real function establishes the
+ * connection pool at server boot time which is not needed in unit/integration tests.
+ * @returns {Promise<void>}
+ */
+async function connectToClickhouse() {
+  return Promise.resolve();
+}
+
 module.exports = ClickHouseMock;
-module.exports.createClient = createClient;
 module.exports.ClickHouseMock = ClickHouseMock;
+module.exports.createClient = createClient;
+module.exports.ACCOUNT_BALANCE_TABLE_NAME = ACCOUNT_BALANCE_TABLE_NAME;
+module.exports.insert = insert;
+module.exports.findMany = findMany;
+module.exports.connectToClickhouse = connectToClickhouse;
