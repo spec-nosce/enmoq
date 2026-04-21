@@ -47,6 +47,8 @@ function moduleNameToMockName(moduleName) {
     clickhouse: 'mock-clickhouse',
     tigerbeetle: 'mock-tigerbeetle',
     mongoose: 'mock-mongoose',
+    resend: 'mock-resend',
+    'tigerbeetle-node': 'mock-tigerbeetle',
   };
 
   return mapping[moduleName] || `mock-${moduleName}`;

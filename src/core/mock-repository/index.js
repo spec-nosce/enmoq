@@ -81,15 +81,43 @@ function mockRepositoryFactory(model, options = {}) {
   // Register model config with store for unique validation
   store.registerModel(modelName, modelConfig);
 
+  /**
+   * Resolve populate directives against the shared store.
+   * Supports both `{ path: 'field' }` and `[{ path: 'field' }, ...]` forms.
+   */
+  async function applyPopulate(docs, populate) {
+    const directives = Array.isArray(populate) ? populate : [populate];
+    let result = docs.map((d) => ({ ...d }));
+
+    for (const directive of directives) {
+      const fieldName = directive.path;
+      const collectionName = modelConfig.refs[fieldName];
+      if (!collectionName) continue; // no ref registered — skip
+
+      const refDocs = await store.load(collectionName);
+      const refById = new Map(refDocs.map((d) => [String(d._id), d]));
+
+      result = result.map((doc) => {
+        const refId = doc[fieldName];
+        if (refId == null) return doc;
+        const resolved = refById.get(String(refId));
+        return resolved ? { ...doc, [fieldName]: resolved } : doc;
+      });
+    }
+
+    return result;
+  }
+
   return {
     /**
      * Find one document
      * @param {object} params
      * @param {object} params.query - MongoDB query
-     * @param {object} [params.options] - Query options (projection, sort, etc.)
+     * @param {Array|object} [params.projections] - Field projections (top-level shorthand)
+     * @param {object} [params.options] - Query options (projection, sort, populate, etc.)
      * @returns {Promise<object|null>}
      */
-    async findOne({ query = {}, options = {} }) {
+    async findOne({ query = {}, projections, options = {} }) {
       let documents = await store.load(modelName);
 
       // Apply paranoid filter (exclude soft-deleted)
@@ -98,15 +126,27 @@ function mockRepositoryFactory(model, options = {}) {
       }
 
       // Match query
-      const matched = queryEngine.match(documents, query);
+      let matched = queryEngine.match(documents, query);
       if (matched.length === 0) {
         return null;
       }
 
-      // Apply projection
+      // Apply sort before picking the first result
+      if (options.sort) {
+        matched = queryEngine.sort(matched, options.sort);
+      }
+
+      // Populate referenced documents
+      if (options.populate) {
+        matched = await applyPopulate(matched, options.populate);
+      }
+
       let result = matched[0];
-      if (options.projection) {
-        const projected = queryEngine.project([result], options.projection);
+
+      // Apply projection — accept top-level `projections` or `options.projection`
+      const projection = projections ?? options.projection;
+      if (projection) {
+        const projected = queryEngine.project([result], projection);
         result = projected[0];
       }
 
@@ -117,10 +157,11 @@ function mockRepositoryFactory(model, options = {}) {
      * Find many documents
      * @param {object} params
      * @param {object} params.query - MongoDB query
-     * @param {object} [params.options] - Query options (projection, sort, limit, etc.)
+     * @param {Array|object} [params.projections] - Field projections (top-level shorthand)
+     * @param {object} [params.options] - Query options (projection, sort, limit, populate, etc.)
      * @returns {Promise<Array>}
      */
-    async findMany({ query = {}, options = {} }) {
+    async findMany({ query = {}, projections, options = {} }) {
       let documents = await store.load(modelName);
 
       // Apply paranoid filter
@@ -141,9 +182,15 @@ function mockRepositoryFactory(model, options = {}) {
         results = queryEngine.limit(results, options.limit);
       }
 
-      // Apply projection
-      if (options.projection) {
-        results = queryEngine.project(results, options.projection);
+      // Populate referenced documents
+      if (options.populate) {
+        results = await applyPopulate(results, options.populate);
+      }
+
+      // Apply projection — accept top-level `projections` or `options.projection`
+      const projection = projections ?? options.projection;
+      if (projection) {
+        results = queryEngine.project(results, projection);
       }
 
       return results;
@@ -197,7 +244,9 @@ function mockRepositoryFactory(model, options = {}) {
      * @param {object} [options] - Create options
      * @returns {Promise<Array>}
      */
-    async createMany({ entries }, options = {}) {
+    async createMany({ entries, options: inlineOpts = {} }, secondOpts = {}) {
+      // Support options passed inside the first argument object (codebase pattern)
+      const options = Object.keys(secondOpts).length ? secondOpts : inlineOpts;
       const documents = await store.load(modelName);
 
       // Add auto fields to all entries
@@ -224,7 +273,9 @@ function mockRepositoryFactory(model, options = {}) {
      * @param {object} [options] - Update options
      * @returns {Promise<object|null>}
      */
-    async updateOne({ query = {}, updateValues = {} }, options = {}) {
+    async updateOne({ query = {}, updateValues = {}, options: inlineOpts = {} }, secondOpts = {}) {
+      // Support options passed inside the first argument object (codebase pattern)
+      const options = Object.keys(secondOpts).length ? secondOpts : inlineOpts;
       // Check if update uses operators
       const hasOperators = Object.keys(updateValues).some((key) => key.startsWith('$'));
 
@@ -316,7 +367,9 @@ function mockRepositoryFactory(model, options = {}) {
      * @param {object} [options] - Update options
      * @returns {Promise<number>} Number of documents updated
      */
-    async updateMany({ query = {}, updateValues = {} }, options = {}) {
+    async updateMany({ query = {}, updateValues = {}, options: inlineOpts = {} }, secondOpts = {}) {
+      // Support options passed inside the first argument object (codebase pattern)
+      const options = Object.keys(secondOpts).length ? secondOpts : inlineOpts;
       // Associate session with store if provided
       if (options.session && !options.session._store) {
         options.session._store = store;
@@ -488,7 +541,9 @@ function mockRepositoryFactory(model, options = {}) {
       return {
         modelName,
         aggregate: async (pipeline) => await aggregationEngine.aggregate(modelName, pipeline),
-        countDocuments: async ({ query = {} }) => {
+        countDocuments: async (arg = {}) => {
+          // Accept both { query: {...} } wrapper and a plain filter object directly
+          const query = Object.prototype.hasOwnProperty.call(arg, 'query') ? arg.query : arg;
           let documents = await store.load(modelName);
 
           // Apply paranoid filter

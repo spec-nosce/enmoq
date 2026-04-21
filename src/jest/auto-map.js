@@ -47,6 +47,17 @@ function autoMapCoreModules(options = {}) {
     mappings[`^@nuvion-core/app-core/http-request$`] = `<rootDir>/node_modules/enmoq/src/core/mock-http`;
   }
 
+  // Third-party package mocks
+  // `resend` is used directly (not via @app-core alias) — map it unless excluded
+  if (!exclude.includes('resend')) {
+    mappings[`^resend$`] = `<rootDir>/node_modules/enmoq/src/core/mock-resend`;
+  }
+
+  // `tigerbeetle-node` is used directly (not via @app-core alias)
+  if (!exclude.includes('tigerbeetle-node')) {
+    mappings[`^tigerbeetle-node$`] = `<rootDir>/node_modules/enmoq/src/core/mock-tigerbeetle`;
+  }
+
   return mappings;
 }
 
@@ -64,6 +75,8 @@ function moduleNameToMockName(moduleName) {
     clickhouse: 'mock-clickhouse',
     tigerbeetle: 'mock-tigerbeetle',
     mongoose: 'mock-mongoose',
+    resend: 'mock-resend',
+    'tigerbeetle-node': 'mock-tigerbeetle',
   };
 
   return mapping[moduleName] || `mock-${moduleName}`;

@@ -14,6 +14,7 @@ const MockHttp = require('./core/mock-http');
 const MockClickHouse = require('./core/mock-clickhouse');
 const { TigerBeetleMock: MockTigerBeetle } = require('./core/mock-tigerbeetle');
 const MockMongoose = require('./core/mock-mongoose');
+const MockResend = require('./core/mock-resend');
 
 // Utilities
 const { setupMocks, getMockInstances, getMockDataPath } = require('./utils/setup');
@@ -47,6 +48,7 @@ module.exports = {
   MockClickHouse,
   MockTigerBeetle,
   MockMongoose,
+  MockResend,
 
   // Utilities
   setupMocks,

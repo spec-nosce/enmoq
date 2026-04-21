@@ -40,9 +40,11 @@ function extractModelConfig(modelName) {
       uniqueFields: Model.__appConfig?.uniqueFields || [],
       defaults: {},
       allowedFields: new Set(),
+      // refs: { fieldName -> collection name } — used for populate support
+      refs: {},
     };
 
-    // Extract field defaults and allowed fields from schema
+    // Extract field defaults, allowed fields, and refs from schema
     const { schema } = Model;
     if (schema && schema.paths) {
       for (const [fieldName, schemaType] of Object.entries(schema.paths)) {
@@ -56,6 +58,11 @@ function extractModelConfig(modelName) {
           config.defaults[fieldName] = schemaType.defaultValue;
         } else if (schemaType.options && schemaType.options.default !== undefined) {
           config.defaults[fieldName] = schemaType.options.default;
+        }
+
+        // Collect ref → collection-name mappings for populate
+        if (schemaType.options?.ref) {
+          config.refs[fieldName] = schemaType.options.ref;
         }
       }
     }
@@ -90,11 +97,12 @@ function extractModelConfig(modelName) {
 function getDefaultConfig() {
   return {
     paranoid: false,
-    supportULIDID: true, // Enable ULID by default for all models
-    uniqueFields: [], // No unique constraints by default
+    supportULIDID: true,
+    uniqueFields: [],
     timestamps: { createdIndexOrder: 'asc' },
     defaults: {},
-    allowedFields: new Set(), // No field filtering if model not found
+    allowedFields: new Set(),
+    refs: {},
   };
 }
 
