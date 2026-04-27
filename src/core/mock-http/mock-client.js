@@ -79,6 +79,7 @@ class MockHttpClient {
 
       if (response.status >= 200 && response.status < 300) {
         return {
+          statusCode: response.status,
           status: response.status,
           statusText: this._getStatusText(response.status),
           headers: response.headers || {},

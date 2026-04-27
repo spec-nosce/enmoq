@@ -96,6 +96,10 @@ async function setupMocks(options = {}) {
     persistDebounce: 0, // immediate persistence for tests
   });
 
+  // Wire the singleton used by createClient() (and therefore by imported helpers
+  // like `findMany` / `insert`) to the same instance created here.
+  ClickHouseMock.setSharedInstance(clickhouseSession);
+
   // Initialize TigerBeetle mock
   // IMPORTANT: spread config.tigerbeetle FIRST so explicit options override defaults.
   // If ...config.tigerbeetle is last, its persistenceDir ('./.mock-data/{session}/tigerbeetle')
@@ -106,6 +110,10 @@ async function setupMocks(options = {}) {
     persistenceDir: path.join(dataDir, sessionId, 'tigerbeetle'),
     autoPersist,
   });
+
+  // Wire the singleton used by createClient() to the same instance created here.
+  const { setSharedInstance: setTbSharedInstance } = require('../core/mock-tigerbeetle');
+  setTbSharedInstance(tigerbeetleSession);
 
   // Auto-restore: load any state already on disk for this session.
   // Enables state accumulation across test files without any developer action.

@@ -170,7 +170,7 @@ module.exports = {
 
   moduleNameMapper: {
     '^@app-core/repository-factory$': '<rootDir>/node_modules/enmoq/src/core/mock-repository',
-    '^@app-core/mongoose$':           '<rootDir>/node_modules/enmoq/src/core/mock-repository',
+    '^@app-core/mongoose$':           '<rootDir>/node_modules/enmoq/src/core/mock-mongoose',
     '^@app-core/queue$':              '<rootDir>/node_modules/enmoq/src/core/mock-queue',
     '^@app-core/http-request$':       '<rootDir>/node_modules/enmoq/src/core/mock-http',
     '^tigerbeetle-node$':             '<rootDir>/node_modules/enmoq/src/core/mock-tigerbeetle',

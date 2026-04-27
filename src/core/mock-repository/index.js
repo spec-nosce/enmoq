@@ -120,8 +120,8 @@ function mockRepositoryFactory(model, options = {}) {
     async findOne({ query = {}, projections, options = {} }) {
       let documents = await store.load(modelName);
 
-      // Apply paranoid filter (exclude soft-deleted)
-      if (modelConfig.paranoid) {
+      // Apply paranoid filter (exclude soft-deleted), unless withDeleted is requested
+      if (modelConfig.paranoid && !options.withDeleted) {
         documents = documents.filter((doc) => doc.deleted === 0);
       }
 
@@ -164,8 +164,8 @@ function mockRepositoryFactory(model, options = {}) {
     async findMany({ query = {}, projections, options = {} }) {
       let documents = await store.load(modelName);
 
-      // Apply paranoid filter
-      if (modelConfig.paranoid) {
+      // Apply paranoid filter, unless withDeleted is requested
+      if (modelConfig.paranoid && !options.withDeleted) {
         documents = documents.filter((doc) => doc.deleted === 0);
       }
 
@@ -599,6 +599,9 @@ function registerSchema(modelName, schema) {
   validator.registerSchema(modelName, schema);
 }
 
+/**
+ * ModelSchema - Simple schema definition class for compatibility
+ */
 /**
  * ModelSchema - Simple schema definition class for compatibility
  */

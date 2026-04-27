@@ -13,7 +13,7 @@ In `jest.config.js`, map your repository alias to the enmoq mock:
 ```js
 moduleNameMapper: {
   '^@app-core/repository-factory$': '<rootDir>/node_modules/enmoq/src/core/mock-repository',
-  '^@app-core/mongoose$':           '<rootDir>/node_modules/enmoq/src/core/mock-repository',
+  '^@app-core/mongoose$':           '<rootDir>/node_modules/enmoq/src/core/mock-mongoose',
 }
 ```
 

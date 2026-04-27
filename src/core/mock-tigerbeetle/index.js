@@ -933,6 +933,32 @@ class TigerBeetleMock {
 // Singleton instance for tests
 let sharedInstance = null;
 
+// Proxy returned to all callers of createClient().
+// Delegates every property access to the *current* sharedInstance so that
+// module-level `const client = createClient()` captures in services stay
+// in sync after setup.js injects the session instance via setSharedInstance().
+const clientProxy = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      if (!sharedInstance) {
+        throw new Error(
+          `TigerBeetle mock not initialised. Ensure setupMocks() has run before using the client.`
+        );
+      }
+      const value = sharedInstance[prop];
+      return typeof value === 'function' ? value.bind(sharedInstance) : value;
+    },
+    set(_target, prop, value) {
+      if (!sharedInstance) {
+        throw new Error(`TigerBeetle mock not initialised.`);
+      }
+      sharedInstance[prop] = value;
+      return true;
+    },
+  }
+);
+
 /**
  * Create TigerBeetle client (mock version)
  * Mimics the real tigerbeetle-node createClient API
@@ -950,7 +976,7 @@ function createClient(options = {}) {
       persistDebounceMs: 0, // Immediate persistence for tests
     });
   }
-  return sharedInstance;
+  return clientProxy;
 }
 
 // Mock ID generator
@@ -973,10 +999,15 @@ function id(value) {
   throw new Error('Invalid ID value');
 }
 
+function setSharedInstance(instance) {
+  sharedInstance = instance;
+}
+
 // Export
 module.exports = {
   TigerBeetleMock,
   createClient,
+  setSharedInstance,
   id,
   AccountFlags,
   TransferFlags,

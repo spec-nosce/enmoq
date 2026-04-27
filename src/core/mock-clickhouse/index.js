@@ -412,7 +412,7 @@ function insert(params) {
  * @returns {Promise<{ data: object[] }>}
  */
 function findMany(params) {
-  return createClient().findMany(params);
+  return createClient().findMany(params).then((rows) => ({ data: rows }));
 }
 
 /**
@@ -424,9 +424,14 @@ async function connectToClickhouse() {
   return Promise.resolve();
 }
 
+function setSharedInstance(instance) {
+  sharedInstance = instance;
+}
+
 module.exports = ClickHouseMock;
 module.exports.ClickHouseMock = ClickHouseMock;
 module.exports.createClient = createClient;
+module.exports.setSharedInstance = setSharedInstance;
 module.exports.ACCOUNT_BALANCE_TABLE_NAME = ACCOUNT_BALANCE_TABLE_NAME;
 module.exports.insert = insert;
 module.exports.findMany = findMany;

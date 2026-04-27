@@ -40,7 +40,40 @@ module.exports = {
   put: (url, data, configOrOptions) => getClient().put(url, data, configOrOptions),
   patch: (url, data, configOrOptions) => getClient().patch(url, data, configOrOptions),
   delete: (url, configOrOptions) => getClient().delete(url, configOrOptions),
-  initialize: (options) => getClient().initialize(options),
+  initialize: (options = {}) => {
+    const baseUrl = options.baseUrl || '';
+    const defaultHeaders = options.headers || {};
+    // Return closures that resolve getClient() at request time so that a
+    // resetClient() call in setupMocks() does not leave callers pointing at
+    // a stale instance.
+    return {
+      get: (path, config) =>
+        getClient().get(`${baseUrl}${path}`, {
+          ...config,
+          headers: { ...defaultHeaders, ...config?.headers },
+        }),
+      post: (path, data, config) =>
+        getClient().post(`${baseUrl}${path}`, data, {
+          ...config,
+          headers: { ...defaultHeaders, ...config?.headers },
+        }),
+      put: (path, data, config) =>
+        getClient().put(`${baseUrl}${path}`, data, {
+          ...config,
+          headers: { ...defaultHeaders, ...config?.headers },
+        }),
+      patch: (path, data, config) =>
+        getClient().patch(`${baseUrl}${path}`, data, {
+          ...config,
+          headers: { ...defaultHeaders, ...config?.headers },
+        }),
+      delete: (path, config) =>
+        getClient().delete(`${baseUrl}${path}`, {
+          ...config,
+          headers: { ...defaultHeaders, ...config?.headers },
+        }),
+    };
+  },
 
   // Testing utilities
   mockHttp: {

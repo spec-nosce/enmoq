@@ -110,7 +110,14 @@ class JsonStore {
       await fs.mkdir(this.basePath, { recursive: true });
 
       // Write to temp file
-      await fs.writeFile(tempPath, JSON.stringify(documents, null, 2), 'utf8');
+      await fs.writeFile(
+        tempPath,
+        JSON.stringify(documents, (_key, value) =>
+          typeof value === 'bigint' ? value.toString() : value,
+          2
+        ),
+        'utf8'
+      );
 
       // Atomic rename
       await fs.rename(tempPath, filePath);

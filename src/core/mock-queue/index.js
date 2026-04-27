@@ -526,8 +526,10 @@ function createQueue(config = {}) {
  * Called by jest/setup.js beforeEach when autoReset.queue is true
  */
 function clearAllQueues() {
+  // Only empty job lists — do NOT clear the map. Workers capture queue references
+  // at module load time via createWorker(); clearing the map would break those
+  // references so that queue('name') returns a different object than the worker holds.
   const promises = Array.from(queueInstances.values()).map((q) => q.empty());
-  queueInstances.clear();
   return Promise.all(promises);
 }
 
